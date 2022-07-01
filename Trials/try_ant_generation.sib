@@ -1,0 +1,9 @@
+module "population"
+load "try_ant_generation.pm"
+add all measures
+deadline 100
+dt 1.0
+replica 10
+init "balanced"
+simulate
+save output "./results" prefix "try-ant-generation_summary_" postfix "__"

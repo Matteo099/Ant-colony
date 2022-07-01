@@ -1,0 +1,9 @@
+module "population"
+load "ant-colony.pm"
+add all measures
+deadline 100
+dt 1.0
+replica 10
+init "initial"
+probreach "colony_survived" with alpha=0.05 and delta=0.01
+probreach "colony_dying" with alpha=0.05 and delta=0.01

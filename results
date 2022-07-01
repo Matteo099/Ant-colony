@@ -1,0 +1,57 @@
+====================================|====================================|                                    
+                                    |
+param initial_larvae = 20;          |    param initial_larvae = 20;                    
+param initial_nurses = 10;          |    param initial_nurses = 100;                     
+param initial_forager = 10;         |    param initial_forager = 100;                    
+param temperature = 0;              |    param temperature = 0;                
+                                    |
+#forager.csv:                       |    #forager.csv:        
+    dt0 - 10                        |        dt0 - 100         
+    dt30 - 18                       |        dt10 - 48         
+    dt832 - 0                       |        dt999 - 218       
+                                    |
+#nurses.csv:                        |    #nurses.csv:        
+    dt0 - 10                        |        dt0 - 100       
+    dt56 - 20                       |        dt170 - 154         
+    dt828 - 0                       |        dt999 - 61          
+                                    |
+Queen dead                          |    Queen alive
+                                    |         
+====================================|====================================|                                     
+                                    |    -- TODO
+param initial_larvae = 20;          |    param initial_larvae = 20;                     
+param initial_nurses = 10;          |    param initial_nurses = 100;                    
+param initial_forager = 10;         |    param initial_forager = 100;                     
+param temperature = 20;             |    param temperature = 20;                   
+                                    |
+#forager.csv:                       |    #forager.csv:         
+    dt0 - 10                        |        dt0 - 10          
+    dt85 - 21                       |        dt85 - 21         
+    dt999 - 0.1                     |        dt999 - 0.1          
+                                    |
+#nurses.csv:                        |    #nurses.csv:         
+    dt0 - 10                        |        dt0 - 10           
+    dt16 - 21                       |        dt16 - 21        
+    dt999 - 0.1                     |        dt999 - 0.1         
+                                    |
+Queen dead                          |    Queen alive
+                                    |
+====================================|====================================|                                     
+                                    |    -- TODO
+param initial_larvae = 20;          |    param initial_larvae = 20;                    
+param initial_nurses = 10;          |    param initial_nurses = 100;                    
+param initial_forager = 10;         |    param initial_forager = 100;                    
+param temperature = 29;             |    param temperature = 29;                
+                                    |
+#forager.csv:                       |    #forager.csv:        
+    dt0 - 10                        |        dt0 - 10         
+    dt72 - 22                       |        dt72 - 22        
+    dt999 - 0.1                     |        dt999 - 0.1        
+                                    |
+#nurses.csv:                        |    #nurses.csv:          
+    dt0 - 10                        |        dt0 - 10          
+    dt25 - 21                       |        dt25 - 21          
+    dt999 - 0.1                     |        dt999 - 0.1     
+                                    |    
+Queen dead                          |    Queen alive
+                                    |
