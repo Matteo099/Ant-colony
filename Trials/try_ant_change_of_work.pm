@@ -1,4 +1,6 @@
 /*
+  Testing change work rules
+  
   Expected behavior: 
   - if there is a lot of food, the Foragers are more likely to become Nurses
   - if there is a little food, the Nurses are more likely to become Foragers 
@@ -57,18 +59,18 @@ system balancedFoodM = Q[0, 5]<1>
 
 /* Unbalanced system with a lot of food;  Expectation: 5 Foragers, 15 Nurses */
 system unbalancedFoodH = Q[0, 9]<1>
-                        |N[0]<5>
-                        |F[0]<15>
-                        |D<100>;
+                          |N[0]<5>
+                          |F[0]<15>
+                          |D<100>;
 
 /* Unbalanced system with a little food; Expectation: 5 Nurses, 15 Foragers */
 system unbalancedFoodL = Q[0, 1]<1>
-                        |N[0]<5>
-                        |F[0]<15>
-                        |D<100>;
+                          |N[0]<5>
+                          |F[0]<15>
+                          |D<100>;
 
 /* Unbalanced system with half food; Expectation: 10 Nurses, 10 Foragers */
 system unbalancedFoodM = Q[0, 5]<1>
-                        |N[0]<5>
-                        |F[0]<15>
-                        |D<100>;
+                          |N[0]<5>
+                          |F[0]<15>
+                          |D<100>;
