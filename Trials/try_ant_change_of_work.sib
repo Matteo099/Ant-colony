@@ -4,6 +4,6 @@ add all measures
 deadline 100
 dt 1.0
 replica 10
-init "unbalanced"
+init "unbalancedFoodH"
 simulate
 save output "./results" prefix "try-ant-change-of-work_summary_" postfix "__"
