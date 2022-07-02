@@ -103,6 +103,15 @@ const temperatureInfluence = (1 - (e ^ -((temperature - IDEAL_TEMPERATURE) ^ 2 /
 
 
 /* ======================================= */
+/*                  LABELS                 */
+/* ======================================= */
+label nurses = { N[i for i in [0,ENERGY]] }
+label foragers = { F[i for i in [0,ENERGY]] }
+label larvae = { L[i for i in [0,ENERGY]] }
+label workers = { N[i for i in [0,ENERGY]], F[i for i in [0,ENERGY]] }
+
+
+/* ======================================= */
 /*                   RULES                 */
 /* ======================================= */
 /* --------- Reproduction rules ---------- */
@@ -182,10 +191,12 @@ rule forager_dies for i in [0, ENERGY] when i > ENERGY / 4 * 3 {
  * The probability is almost the same for both (50%), but it also depends on the percentage of well fed larvae: the more the larvae are hungry ([ENERGY/4, ENERGY]), the greater the probability that the larva becomes a nurse, otherwise viceversa.
  */
 rule larva_becomes_nurse for i in [0, ENERGY] {
-  L[i] -[ halfRate * %L[j for j in [ENERGY/4,ENERGY]] ]-> N[i]
+  /* halfRate * %L[j for j in [ENERGY/4,ENERGY]] */
+  L[i] -[ halfRate * (#L[j for j in [ENERGY/4,ENERGY]] / #larvae) ]-> N[i]
 }
 rule larva_becomes_forager for i in [0, ENERGY] {
-  L[i] -[ halfRate * %L[j for j in [0,ENERGY/4]] ]-> F[i]
+  /* halfRate * %L[j for j in [0,ENERGY/4]] */
+  L[i] -[ halfRate * (#L[j for j in [0,ENERGY/4]] / #larvae) ]-> F[i]
 }
 
 /* ------------- Change of work -------------- */
@@ -194,12 +205,10 @@ rule larva_becomes_forager for i in [0, ENERGY] {
  * - Viceversa, a Forager can become a Nurse if the amount of food stored in the nest is plentiful and the percentage of Foragers increase.
  */
 rule nurse_becomes_forager for i in [0, ENERGY/2] and j in [0, ENERGY] and f in [0, FOOD_STORAGE] {
-  /* (1 - f / FOOD_STORAGE) * %N[i] */
-  Q[j,f]|N[i] -[ #N[i] * (1 - f / FOOD_STORAGE) * (1 - %F[i]) ]-> Q[j,f]|F[i]
+  Q[j,f]|N[i] -[ #nurses * (1 - f / FOOD_STORAGE) * (#nurses / #workers) ]-> Q[j,f]|F[i]
 }
 rule forager_becomes_nurse for i in [0, ENERGY/2] and j in [0, ENERGY] and f in [0, FOOD_STORAGE] {
-  /* (f / FOOD_STORAGE) * %F[i] */
-  Q[j,f]|F[i] -[ #F[i] * (f / FOOD_STORAGE) * (1 - %N[i]) ]-> Q[j,f]|N[i]
+  Q[j,f]|F[i] -[ #foragers * (f / FOOD_STORAGE) * (#foragers / #workers) ]-> Q[j,f]|N[i]
 }
 
 
@@ -207,12 +216,12 @@ rule forager_becomes_nurse for i in [0, ENERGY/2] and j in [0, ENERGY] and f in 
 /*          MEASURES & PREDICATES          */
 /* ======================================= */
 measure n_queen = #Q[i, j for i in [0,ENERGY] and j in [0,FOOD_STORAGE]];
-measure n_nurse = #N[i for i in [0,ENERGY]];
-measure n_forager = #F[i for i in [0,ENERGY]];
-measure n_larvae = #L[i for i in [0,ENERGY]];
+measure n_nurse = #nurses;
+measure n_forager = #foragers;
+measure n_larvae = #larvae;
 measure n_death = #D;
 
-predicate colony_growing = (#N[i for i in [0,ENERGY]] + #F[i for i in [0,ENERGY]] + #L[i for i in [0,ENERGY]] > initial_nurses + initial_forager + initial_larvae);
+predicate colony_growing = (#nurses + #foragers + #larvae > initial_nurses + initial_forager + initial_larvae);
 predicate colony_survived = (#Q[i, j for i in [0,ENERGY] and j in [0,FOOD_STORAGE]] > 0);
 predicate colony_dying = ( #Q[i, j for i in [0,ENERGY] and j in [0,FOOD_STORAGE]] == 0 );
 
