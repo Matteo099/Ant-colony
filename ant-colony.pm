@@ -40,8 +40,8 @@ const e = 2.718281;
 
 /* -------- Environment Parameters -------- */
 param initial_larvae = 20;
-param initial_nurses = 100;
-param initial_forager = 100;
+param initial_nurses = 10;
+param initial_forager = 10;
 
 param temperature = 29;
 param foodAvailabilityRate = 1.0;
@@ -63,18 +63,17 @@ species DL; 			                              /* Death larva */
 species DA; 			                              /* Death ant */
 
 /* -------- Probability Rates & Multipliers -------- */
-const rate = 1.0;
-const halfRate = 0.5;
 const queenFertilityRate = 1.0;
 const baseConsumeEnergyRate = 0.25;
 const eatRate = 0.5;
+const transformationRate = 0.5;
 
 const nurseWorkRate = 0.25;
 const nurseFeedRate = 1.0;
 const nurseCleanRate = 0.75;
 const foragerWorkRate = 0.75;
 
-const queenDeathRate = 0.01; /* It is really rare that the queen death */
+const queenDeathRate = 0.001; /* It is really rare that the queen death */
 const larvaDeathRate = 0.6;
 const workerDeathRate = 0.4;
 
@@ -174,29 +173,30 @@ rule nurse_works for i in [0, ENERGY-1] {
   /* Work rule for feeding larvae & queen */
   N[i] -[ nurseWorkRate * temperatureInfluence ]-> N[i+1]
 }
-rule nurse_feed_queen for i in [0, ENERGY-1] and j in [ENERGY/2, ENERGY] and f in [1, FOOD_STORAGE] {
-  N[i]|Q[j]|H[f] -[ nurseFeedRate * temperatureInfluence ]-> N[i]|Q[j-1]|H[f-1]
+rule nurse_feed_queen for i in [0, ENERGY-1] and j in [ENERGY/4, ENERGY] and f in [1, FOOD_STORAGE] {
+  N[i]|Q[j]|H[f] -[ nurseFeedRate * (1 - temperatureInfluence) ]-> N[i]|Q[j-1]|H[f-1]
 }
 rule nurse_feed_larvae for i in [0, ENERGY-1] and b in [ENERGY/2, ENERGY] and f in [2, FOOD_STORAGE] {
-  N[i]|L[b]|H[f] -[ nurseFeedRate * temperatureInfluence ]-> N[i]|L[b-1]|H[f-1]
+  N[i]|L[b]|H[f] -[ nurseFeedRate * (1 - temperatureInfluence) ]-> N[i]|L[b-1]|H[f-1]
 }
 rule nurse_clean_nest for i in [0, ENERGY-1] and f in [0, FOOD_STORAGE-1] {
-  N[i]|H[f]|DL -[ nurseCleanRate * temperatureInfluence * %DL ]-> N[i]|H[f+1]
+  N[i]|H[f]|DL -[ nurseCleanRate * (1 - temperatureInfluence) * %DL ]-> N[i]|H[f+1]
 }
 rule forager_works for i in [0, ENERGY-1] and f in [0, FOOD_STORAGE-2] {
-  F[i]|H[f] -[ foragerWorkRate * temperatureInfluence * foodAvailabilityRate ]-> F[i+1]|H[f+2]
+  F[i]|H[f] -[ foragerWorkRate * (1 - temperatureInfluence) * foodAvailabilityRate ]-> F[i+1]|H[f+2]
 }
 
 /* ------------- Die rules ------------- */
 /* The probability of death mainly depends on the energy level: the hungrier the ant, the more likely it is to die.
- * However, the probability of death also depends on the percentage of ants that have the same energy: more ants are hungry, more food is cosumed until the food (in the food storage) finishes, causing the death of the other ants.
+ * However, the probability of death also depends on the percentage of ants that have the same (or less) energy: more ants are hungry, more food is cosumed until the food (in the food storage) finishes, causing the death of the other ants.
  * TODO: the probability of death increase also with the Age of the ant! 
  */
 rule queen_dies for i in [0, ENERGY] when i > ENERGY / 4 * 3 {
   Q[i] -[ i / ENERGY * queenDeathRate ]-> DA
 }
+/* * %L[j for j [i, ENERGY]] */
 rule larvae_dies for i in [0, ENERGY] when i > ENERGY / 4 * 3 {
-  L[i] -[ i / ENERGY * larvaDeathRate ]-> DL
+  L[i] -[ i / ENERGY * larvaDeathRate ]-> DA
 }
 rule nurse_dies for i in [0, ENERGY] when i > ENERGY / 4 * 3 {
   N[i] -[ i / ENERGY * workerDeathRate ]-> DA
@@ -207,16 +207,13 @@ rule forager_dies for i in [0, ENERGY] when i > ENERGY / 4 * 3 {
 
 /* ------- Larvae transformation rules -------- */
 /* When a larva is grow enough, it will turn into: Nurse or Forager.
- * The probability is almost the same for both (50%), but it also depends on the percentage of well fed larvae: the more the larvae are hungry ([ENERGY/4, ENERGY]), the greater the probability that the larva becomes a nurse, otherwise viceversa.
- * However, as soon as the food storage become empty, the Nurses will transform to Foragers as defined in the rules below (Change of work rules).
+ * The probability is the same for both, and it is 50%.
  */
 rule larva_becomes_nurse for i in [0, ENERGY] {
-  /* halfRate * %L[j for j in [ENERGY/4,ENERGY]] */
-  L[i] -[ halfRate * (#L[j for j in [ENERGY/4,ENERGY]] / #larvae) ]-> N[i]
+  L[i] -[ transformationRate ]-> N[i]
 }
 rule larva_becomes_forager for i in [0, ENERGY] {
-  /* halfRate * %L[j for j in [0,ENERGY/4]] */
-  L[i] -[ halfRate * (#L[j for j in [0,ENERGY/4]] / #larvae) ]-> F[i]
+  L[i] -[ transformationRate ]-> F[i]
 }
 
 /* ------------- Change of work rules -------------- */
@@ -249,4 +246,4 @@ predicate colony_dying = ( #Q[i for i in [0,ENERGY]] == 0 );
 /* ======================================= */
 /*                SYSTEM DEF               */
 /* ======================================= */
-system initial = H[FOOD_STORAGE-1]<1>|Q[0]<1>|N[0]<initial_nurses>|F[0]<initial_forager>|L[0]<initial_larvae>|DL<0>|DA<0>;
+system initial = H[FOOD_STORAGE-1]<1>|Q[0]<1>|N[0]<initial_nurses>|F[0]<initial_forager>|L[0]<initial_larvae>|DA<0>|DL<0>;
