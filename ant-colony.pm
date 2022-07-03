@@ -222,10 +222,10 @@ rule larva_becomes_forager for i in [0, ENERGY] {
  * - Viceversa, a Forager can become a Nurse if the amount of food stored in the nest is plentiful and the percentage of Foragers increase.
  */
 rule nurse_becomes_forager for i in [0, ENERGY / 4 * 3] and f in [0, FOOD_STORAGE] {
-  N[i]|H[f] -[ #nurses * (1 - f / FOOD_STORAGE) * (#nurses / #workers) ]-> F[i]|H[f]
+  N[i]|H[f] -[ #nurses * (1 - (f/2) / (FOOD_STORAGE - 1)) * (#nurses / #workers) ]-> F[i]|H[f]
 }
 rule forager_becomes_nurse for i in [0, ENERGY / 4 * 3] and j in [0, ENERGY] and f in [0, FOOD_STORAGE] {
-  F[i]|H[f] -[ #foragers * (f / FOOD_STORAGE) * (#foragers / #workers) ]-> N[i]|H[f]
+  F[i]|H[f] -[ #foragers * ((f / (FOOD_STORAGE - 1)) / 2) * (#foragers / #workers) ]-> N[i]|H[f]
 }
 
 

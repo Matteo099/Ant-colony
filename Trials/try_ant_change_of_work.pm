@@ -23,10 +23,10 @@ label workers = { N[i for i in [0,ENERGY]], F[i for i in [0,ENERGY]] }
 
 /* Change of work rules */
 rule nurse_becomes_forager for i in [0, ENERGY/2] and j in [0, ENERGY] and f in [0, FOOD_STORAGE] {
-  Q[j,f]|N[i] -[ #nurses * (1 - ((f+1)/2) / FOOD_STORAGE) * (#nurses / #workers) ]-> Q[j,f]|F[i]
+  Q[j,f]|N[i] -[ #nurses * (1 - (f/2) / (FOOD_STORAGE-1)) * (#nurses / #workers) ]-> Q[j,f]|F[i]
 }
 rule forager_becomes_nurse for i in [0, ENERGY/2] and j in [0, ENERGY] and f in [0, FOOD_STORAGE] {
-  Q[j,f]|F[i] -[ #foragers * (((f+1) / FOOD_STORAGE) / 2) * (#foragers / #workers) ]-> Q[j,f]|N[i]
+  Q[j,f]|F[i] -[ #foragers * ((f / (FOOD_STORAGE-1)) / 2) * (#foragers / #workers) ]-> Q[j,f]|N[i]
 }
 
 
