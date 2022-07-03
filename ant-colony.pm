@@ -37,14 +37,19 @@
 /* ======================================= */
 /* -------- Math constants -------- */
 const e = 2.718281;
+const beta = 3.6;
+const sigma = 5;
+const gamma = 0.428;
+const A = 1;
+const B = -41;
 
 /* -------- Environment Parameters -------- */
 param initial_larvae = 20;
 param initial_nurses = 10;
 param initial_forager = 10;
 
-param temperature = 29;
-param foodAvailabilityRate = 1.0; /* Ranges between 0 and 1 */
+param temperature = 20;
+param foodAvailabilityRate = 0.25; /* Ranges between 0 and 1 */
 
 /* -------- Generic Constants -------- */
 const ENERGY = 10;              /* Energy (or hungry) level of an ant: 0 = no hunger (full of energy), 10 = really hungry (no energy) */
@@ -72,11 +77,11 @@ const nurseWorkRate = 0.50;
 const nurseFeedLarvaRate = 0.50;
 const nurseFeedQueenRate = 0.75;
 const nurseCleanRate = 0.25;
-const foragerWorkRate = 0.75;
+const foragerWorkRate = 0.750;
 
 const queenDeathRate = 0.001; /* It is really rare that the queen dies */
 const larvaDeathRate = 1.0;  /* If larva is not well feeded, it will die */
-const workerDeathRate = 0.20; 
+const workerDeathRate = 0.25; 
 
 /* Must range between 0 and 2 */
 const larvaConsumeEnergyMultiplier = 1.5;
@@ -109,7 +114,8 @@ const foragerConsumeEnergyMultiplier = 1;
  *             |                                                                         
  *
  */
-const temperatureInfluence = 1 - (0.01 + 0.98 * e ^ -((temperature - IDEAL_TEMPERATURE) ^ 2 / DELTA_TEMPERATURE ^ 2));
+ const temperatureInfluence = 0.99 - 0.98 * ( beta / (2 * (sigma + DELTA_TEMPERATURE) * gamma * (1 / beta))) * e ^ -(((temperature - IDEAL_TEMPERATURE) / (sigma + DELTA_TEMPERATURE))^beta) * (1 / (1 + e ^ (A*(temperature + B))));
+/* const temperatureInfluence = 1 - (0.01 + 0.98 * e ^ -((temperature - IDEAL_TEMPERATURE) ^ 2 / DELTA_TEMPERATURE ^ 2)); */
 const eggs = 10; /* number of eggs the queen will lay */
 
 /* ======================================= */
@@ -224,7 +230,7 @@ rule larva_becomes_forager for i in [0, ENERGY] {
 rule nurse_becomes_forager for i in [0, ENERGY / 4 * 3] and f in [0, FOOD_STORAGE] {
   N[i]|H[f] -[ #nurses * (1 - (f/2) / (FOOD_STORAGE - 1)) * (#nurses / #workers) ]-> F[i]|H[f]
 }
-rule forager_becomes_nurse for i in [0, ENERGY / 4 * 3] and j in [0, ENERGY] and f in [0, FOOD_STORAGE] {
+rule forager_becomes_nurse for i in [0, ENERGY / 4 * 3] and f in [0, FOOD_STORAGE] {
   F[i]|H[f] -[ #foragers * ((f / (FOOD_STORAGE - 1)) / 2) * (#foragers / #workers) ]-> N[i]|H[f]
 }
 
