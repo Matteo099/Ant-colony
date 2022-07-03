@@ -6,4 +6,4 @@ dt 1.0
 replica 10
 init "initial"
 simulate
-save output "./results/1" prefix "ant-colony_summary_" postfix "__"
+save output "./results/20-100-100-10-0.25" prefix "ac-old_colony-low_temperature-low_food-summary_" postfix "__"

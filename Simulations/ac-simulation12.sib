@@ -1,0 +1,17 @@
+module "population"
+load "../ant-colony.pm"
+
+set "initial_larvae" 20.0
+set "initial_nurses" 100.0
+set "initial_forager" 100.0
+set "temperature" 10.0
+set "foodAvailabilityRate" 0.25
+
+init "initial"
+
+add all measures
+deadline 100
+dt 1.0
+replica 10
+simulate
+save output "./results/20-100-100-10-0.25" prefix "ac-old_colony-low_temperature-low_food-summary_" postfix "__"

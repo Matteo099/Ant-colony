@@ -1,9 +1,0 @@
-module "population"
-load "ant-colony.pm"
-add all measures
-deadline 100
-dt 1.0
-replica 10
-init "initial"
-simulate
-save output "./results/3" prefix "ant-colony_summary_" postfix "__"
