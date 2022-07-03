@@ -44,7 +44,7 @@ param initial_nurses = 10;
 param initial_forager = 10;
 
 param temperature = 29;
-param foodAvailabilityRate = 1.0; /* Ranges between 0 and 1 */
+param foodAvailabilityRate = 0.4; /* Ranges between 0 and 1 */
 
 /* -------- Generic Constants -------- */
 const ENERGY = 10;              /* Energy (or hungry) level of an ant: 0 = no hunger (full of energy), 10 = really hungry (no energy) */
@@ -133,8 +133,8 @@ label larvae = { L[i for i in [0,ENERGY]] }
  * 
  * The queen will lay a number of eggs that is constant (eggs).
  */
-rule queen_lays_eggs for i in [0, ENERGY/2] and f in [0, FOOD_STORAGE] {
-  Q[i]|H[f] -[ (1.0 - i / ENERGY) * (1.0 - f / FOOD_STORAGE) * queenFertilityRate * (1 - temperatureInfluence) ]-> Q[i+1]|H[f]|L[0]<eggs>
+rule queen_lays_eggs for i in [ENERGY/2, ENERGY] and f in [0, FOOD_STORAGE] {
+  Q[i]|H[f] -[ (i / ENERGY) * (1.0 - f / FOOD_STORAGE) * queenFertilityRate * (1 - temperatureInfluence) ]-> Q[i-1]|H[f]|L[0]<eggs>
 }
 
 /* ------- Consume energy rules --------- */
@@ -142,26 +142,26 @@ rule queen_lays_eggs for i in [0, ENERGY/2] and f in [0, FOOD_STORAGE] {
  * - Farter is the temperature from the ideal T, faster will be the metabolism (Temperature influence);
  * - The heavier the ant, the faster the metabolism.
  */
-rule larva_consume_energy for i in [0, ENERGY-1] {
-  L[i] -[ baseConsumeEnergyRate * larvaConsumeEnergyMultiplier + temperatureInfluence / 2 ]-> L[i+1]
+rule larva_consume_energy for i in [1, ENERGY] {
+  L[i] -[ baseConsumeEnergyRate * larvaConsumeEnergyMultiplier + temperatureInfluence / 2 ]-> L[i-1]
 }
-rule queen_consume_energy for i in [0, ENERGY-1] {
-  Q[i] -[ baseConsumeEnergyRate * queenConsumeEnergyMultiplier + temperatureInfluence / 2 ]-> Q[i+1] 
+rule queen_consume_energy for i in [1, ENERGY] {
+  Q[i] -[ baseConsumeEnergyRate * queenConsumeEnergyMultiplier + temperatureInfluence / 2 ]-> Q[i-1] 
 }
-rule nurse_consume_energy for i in [0, ENERGY-1] {
-  N[i] -[ baseConsumeEnergyRate * nurseConsumeEnergyMultiplier + temperatureInfluence / 2 ]-> N[i+1]
+rule nurse_consume_energy for i in [1, ENERGY] {
+  N[i] -[ baseConsumeEnergyRate * nurseConsumeEnergyMultiplier + temperatureInfluence / 2 ]-> N[i-1]
 }
-rule forager_consume_energy for i in [0, ENERGY-1] {
-  F[i] -[ baseConsumeEnergyRate * foragerConsumeEnergyMultiplier + temperatureInfluence / 2 ]-> F[i+1]
+rule forager_consume_energy for i in [1, ENERGY] {
+  F[i] -[ baseConsumeEnergyRate * foragerConsumeEnergyMultiplier + temperatureInfluence / 2 ]-> F[i-1]
 }
 
 /* ----------- Eating rules ------------ */
 /* When an ant eats then the food from the global storage is decreased by one. Only Nurses and Foragers eat food directly. */
-rule nurse_hungry_eats for i in [ENERGY/2, ENERGY] and f in [2, FOOD_STORAGE] {
-  H[f]|N[i] -[ eatRate ]-> H[f-1]|N[i-1]
+rule hungry_nurse_eats for i in [0, ENERGY/2] and f in [2, FOOD_STORAGE] {
+  H[f]|N[i] -[ eatRate ]-> H[f-1]|N[i+1]
 }
-rule forager_hungry_eats for i in [ENERGY/2, ENERGY] and f in [2, FOOD_STORAGE] {
-  H[f]|F[i] -[ eatRate ]-> H[f-1]|F[i-1]
+rule hungry_forager_eats for i in [0, ENERGY/2] and f in [2, FOOD_STORAGE] {
+  H[f]|F[i] -[ eatRate ]-> H[f-1]|F[i+1]
 }
 
 /* ------------- Work rules ------------- */
@@ -171,18 +171,18 @@ rule forager_hungry_eats for i in [ENERGY/2, ENERGY] and f in [2, FOOD_STORAGE] 
  *
  * Moreover, the Foragers are also influenced by the availability of the food: more food there is, greater it will be for food to be harvested.
  */
-rule nurse_feed_queen for i in [0, ENERGY-1] and j in [ENERGY/4, ENERGY] and f in [2, FOOD_STORAGE] {
+rule nurse_feed_queen for i in [1, ENERGY] and j in [0, ENERGY / 4 * 3] and f in [2, FOOD_STORAGE] {
   /* Since the queen is bigger that the normal ants, it will eat more food */
-  N[i]|Q[j]|H[f] -[ nurseFeedQueenRate * (1 - temperatureInfluence) ]-> N[i+1]|Q[j-1]|H[f-2]
+  N[i]|Q[j]|H[f] -[ nurseFeedQueenRate * (1 - temperatureInfluence) ]-> N[i-1]|Q[j+1]|H[f-2]
 }
-rule nurse_feed_larva for i in [0, ENERGY-1] and b in [ENERGY/2, ENERGY] and f in [3, FOOD_STORAGE] {
-  N[i]|L[b]|H[f] -[ nurseFeedLarvaRate * (1 - temperatureInfluence) ]-> N[i+1]|L[b-1]|H[f-1]
+rule nurse_feed_larva for i in [1, ENERGY] and b in [0, ENERGY / 2] and f in [3, FOOD_STORAGE] {
+  N[i]|L[b]|H[f] -[ nurseFeedLarvaRate * (1 - temperatureInfluence) ]-> N[i-1]|L[b+1]|H[f-1]
 }
-rule nurse_clean_nest for i in [0, ENERGY-1] and f in [0, FOOD_STORAGE-1] {
+rule nurse_clean_nest for i in [1, ENERGY] and f in [0, FOOD_STORAGE-1] {
   N[i]|H[f]|DL -[ nurseCleanRate * (1 - temperatureInfluence) * %DL ]-> N[i]|H[f+1]
 }
-rule forager_works for i in [0, ENERGY-1] and f in [0, FOOD_STORAGE-2] {
-  F[i]|H[f] -[ foragerWorkRate * (1 - temperatureInfluence) * foodAvailabilityRate ]-> F[i+1]|H[f+2]
+rule forager_works for i in [1, ENERGY] and f in [0, FOOD_STORAGE-2] {
+  F[i]|H[f] -[ foragerWorkRate * (1 - temperatureInfluence) * foodAvailabilityRate ]-> F[i-1]|H[f+2]
 }
 
 /* ------------- Die rules ------------- */
@@ -192,17 +192,17 @@ rule forager_works for i in [0, ENERGY-1] and f in [0, FOOD_STORAGE-2] {
  * - it is more likely the larva dies if not well feeded;
  * - the worker death rate is pretty low.
  */
-rule queen_dies for i in [0, ENERGY] when i > ENERGY / 4 * 3 {
-  Q[i] -[ i / ENERGY * queenDeathRate ]-> DA
+rule queen_dies for i in [0, ENERGY / 4] {
+  Q[i] -[ (1 - i / ENERGY) * queenDeathRate ]-> DA
 }
-rule larva_dies for i in [0, ENERGY] when i > ENERGY / 4 * 3 {
-  L[i] -[ i / ENERGY * larvaDeathRate ]-> DL
+rule larva_dies for i in [0, ENERGY / 4] {
+  L[i] -[ (1 - i / ENERGY) * larvaDeathRate ]-> DL
 }
-rule nurse_dies for i in [0, ENERGY] when i > ENERGY / 4 * 3 {
-  N[i] -[ i / ENERGY * workerDeathRate ]-> DA
+rule nurse_dies for i in [0, ENERGY / 4] {
+  N[i] -[ (1 - i / ENERGY) * workerDeathRate ]-> DA
 }
-rule forager_dies for i in [0, ENERGY] when i > ENERGY / 4 * 3 {
-  F[i] -[ i / ENERGY * workerDeathRate ]-> DA
+rule forager_dies for i in [0, ENERGY / 4] {
+  F[i] -[ (1 - i / ENERGY) * workerDeathRate ]-> DA
 }
 
 /* ------- Larvae transformation rules -------- */
@@ -221,10 +221,10 @@ rule larva_becomes_forager for i in [0, ENERGY] {
  * - A Nurse can become a Forager if the amount of food stored in the nest is scarce and the percentage of Nurses increase;
  * - Viceversa, a Forager can become a Nurse if the amount of food stored in the nest is plentiful and the percentage of Foragers increase.
  */
-rule nurse_becomes_forager for i in [0, ENERGY / 4 * 3] and f in [0, FOOD_STORAGE] {
+rule nurse_becomes_forager for i in [ENERGY / 4, ENERGY] and f in [0, FOOD_STORAGE] {
   N[i]|H[f] -[ #nurses * (1 - f / FOOD_STORAGE) * (#nurses / #workers) ]-> F[i]|H[f]
 }
-rule forager_becomes_nurse for i in [0, ENERGY / 4 * 3] and j in [0, ENERGY] and f in [0, FOOD_STORAGE] {
+rule forager_becomes_nurse for i in [ENERGY / 4, ENERGY] and j in [0, ENERGY] and f in [0, FOOD_STORAGE] {
   F[i]|H[f] -[ #foragers * (f / FOOD_STORAGE) * (#foragers / #workers) ]-> N[i]|H[f]
 }
 
@@ -247,4 +247,4 @@ predicate colony_dying = ( #Q[i for i in [0,ENERGY]] == 0 );
 /* ======================================= */
 /*                SYSTEM DEF               */
 /* ======================================= */
-system initial = H[FOOD_STORAGE-1]<1>|Q[0]<1>|N[0]<initial_nurses>|F[0]<initial_forager>|L[0]<initial_larvae>|DA<0>|DL<0>;
+system initial = H[FOOD_STORAGE-1]<1>|Q[ENERGY-1]<1>|N[ENERGY-1]<initial_nurses>|F[ENERGY-1]<initial_forager>|L[ENERGY-1]<initial_larvae>|DA<0>|DL<0>;
