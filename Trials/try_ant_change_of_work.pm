@@ -23,12 +23,10 @@ label workers = { N[i for i in [0,ENERGY]], F[i for i in [0,ENERGY]] }
 
 /* Change of work rules */
 rule nurse_becomes_forager for i in [0, ENERGY/2] and j in [0, ENERGY] and f in [0, FOOD_STORAGE] {
-  /* #nurses * (1 - f / FOOD_STORAGE) * (1 - %foragers) */
-  Q[j,f]|N[i] -[ #nurses * (1 - f / FOOD_STORAGE) * (#nurses / #workers) ]-> Q[j,f]|F[i]
+  Q[j,f]|N[i] -[ #nurses * (1 - ((f+1)/2) / FOOD_STORAGE) * (#nurses / #workers) ]-> Q[j,f]|F[i]
 }
 rule forager_becomes_nurse for i in [0, ENERGY/2] and j in [0, ENERGY] and f in [0, FOOD_STORAGE] {
-  /* #foragers * (f / FOOD_STORAGE) * (1 - %nurses) */
-  Q[j,f]|F[i] -[ #foragers * (f / FOOD_STORAGE) * (#foragers / #workers) ]-> Q[j,f]|N[i]
+  Q[j,f]|F[i] -[ #foragers * (((f+1) / FOOD_STORAGE) / 2) * (#foragers / #workers) ]-> Q[j,f]|N[i]
 }
 
 
@@ -39,7 +37,7 @@ measure n_workers = #workers;
 measure p_nurse = %nurses;
 measure p_forager = %foragers;
 
-/* Balanced system with a lot of food; Expectation: 5 Foragers, 15 Nurses */
+/* Balanced system with a lot of food; Expectation: 10 Foragers, 10 Nurses */
 system balancedFoodH = Q[0, 9]<1>
                         |N[0]<10>
                         |F[0]<10>
@@ -51,13 +49,13 @@ system balancedFoodL = Q[0, 1]<1>
                         |F[0]<10>
                         |D<100>;
 
-/* Balanced system with half food; Expectation: 10 Nurses, 10 Foragers */
+/* Balanced system with half food; Expectation: 7 Nurses, 13 Foragers */
 system balancedFoodM = Q[0, 5]<1>
                         |N[0]<10>
                         |F[0]<10>
                         |D<100>;
 
-/* Unbalanced system with a lot of food;  Expectation: 5 Foragers, 15 Nurses */
+/* Unbalanced system with a lot of food;  Expectation: 10 Foragers, 10 Nurses */
 system unbalancedFoodH = Q[0, 9]<1>
                           |N[0]<5>
                           |F[0]<15>
@@ -69,7 +67,7 @@ system unbalancedFoodL = Q[0, 1]<1>
                           |F[0]<15>
                           |D<100>;
 
-/* Unbalanced system with half food; Expectation: 10 Nurses, 10 Foragers */
+/* Unbalanced system with half food; Expectation: 7 Nurses, 13 Foragers */
 system unbalancedFoodM = Q[0, 5]<1>
                           |N[0]<5>
                           |F[0]<15>

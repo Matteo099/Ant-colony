@@ -6,4 +6,4 @@ dt 1.0
 replica 10
 init "unbalancedFoodH"
 simulate
-save output "./results" prefix "try-ant-change-of-work_summary_" postfix "__"
+save output "./results/change-of-work" prefix "try-ant-change-of-work_summary_" postfix "__"
