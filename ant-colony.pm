@@ -37,19 +37,19 @@
 /* ======================================= */
 /* -------- Math constants -------- */
 const e = 2.718281;
-const beta = 3.6;
+const beta = 4;
 const sigma = 5;
-const gamma = 0.428;
-const A = 1;
-const B = -41;
+const gamma = 0.53;
+const alpha = 1;
+const delta = -41;
 
 /* -------- Environment Parameters -------- */
 param initial_larvae = 20;
 param initial_nurses = 10;
 param initial_forager = 10;
 
-param temperature = 20;
-param foodAvailabilityRate = 0.25; /* Ranges between 0 and 1 */
+param temperature = 29;
+param foodAvailabilityRate = 1; /* Ranges between 0 and 1 */
 
 /* -------- Generic Constants -------- */
 const ENERGY = 10;              /* Energy (or hungry) level of an ant: 0 = no hunger (full of energy), 10 = really hungry (no energy) */
@@ -114,7 +114,7 @@ const foragerConsumeEnergyMultiplier = 1;
  *             |                                                                         
  *
  */
- const temperatureInfluence = 0.99 - 0.98 * ( beta / (2 * (sigma + DELTA_TEMPERATURE) * gamma * (1 / beta))) * e ^ -(((temperature - IDEAL_TEMPERATURE) / (sigma + DELTA_TEMPERATURE))^beta) * (1 / (1 + e ^ (A*(temperature + B))));
+const temperatureInfluence = 0.99 - 0.98 * ( beta / (2 * (sigma + DELTA_TEMPERATURE) * gamma * (1 / beta))) * (e ^ -(((temperature - IDEAL_TEMPERATURE) / (sigma + DELTA_TEMPERATURE))^beta)) * (1 / (1 + e ^ (alpha*(temperature + delta))));
 /* const temperatureInfluence = 1 - (0.01 + 0.98 * e ^ -((temperature - IDEAL_TEMPERATURE) ^ 2 / DELTA_TEMPERATURE ^ 2)); */
 const eggs = 10; /* number of eggs the queen will lay */
 
