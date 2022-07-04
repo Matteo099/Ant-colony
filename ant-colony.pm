@@ -90,7 +90,7 @@ const nurseConsumeEnergyMultiplier = 0.5;
 const foragerConsumeEnergyMultiplier = 1;
 
 /* 
- * The function (gaussian function) ranges between 0.01 and 0.99: as we move away from 29 °C, the influence function increase until reaches the maximum (0.99).
+ * The function (generalized normal function) ranges between ~0 and ~1: as we move away from 29 °C, the influence function increase until reaches the maximum.
  *                                                                                      
  *             ^                                                                        
  * Probability |                                                                         
@@ -99,23 +99,22 @@ const foragerConsumeEnergyMultiplier = 1;
  *             |                                                                         
  *             |                                                                         
  *             |                                                                         
- *  0.99 -----------\                          -------------                                 
- *             |     -\                       /                                          
- *             |       -\                   -/                                           
- *             |         \                 /                                             
- *             |          -\              /                                              
- *             |            -\           /                                               
- *             |              \        -/                                               -
- *             |               -\     /                                                  
- *        0.01 |                 -\  /                                                   
+ *  ~1   -----------\                         /-------------                                 
+ *             |     -\                      /                                          
+ *             |       -\                   |                                           
+ *             |         \                  |                                             
+ *             |          -\               /                                              
+ *             |            \             |                                             
+ *             |             \            |                                               -
+ *             |              \          /                                                  
+ *  ~0         |               \--------/                                                   
  *      -------+------------------------------------------->                             
- *             |              23   29   35      Temperature                              
+ *           0 |              23   29   35      Temperature                              
  *             |                                                                         
  *             |                                                                         
  *
  */
 const temperatureInfluence = 0.99 - 0.98 * ( beta / (2 * (sigma + DELTA_TEMPERATURE) * gamma * (1 / beta))) * (e ^ -(((temperature - IDEAL_TEMPERATURE) / (sigma + DELTA_TEMPERATURE))^beta)) * (1 / (1 + e ^ (alpha*(temperature + delta))));
-/* const temperatureInfluence = 1 - (0.01 + 0.98 * e ^ -((temperature - IDEAL_TEMPERATURE) ^ 2 / DELTA_TEMPERATURE ^ 2)); */
 const eggs = 10; /* number of eggs the queen will lay */
 
 /* ======================================= */
