@@ -38,17 +38,18 @@
 /* -------- Math constants -------- */
 const e = 2.718281;
 const beta = 4;
-const sigma = 5;
-const gamma = 0.53;
+const sigma = 15;
+const gamma = 0.32;
 const alpha = 1;
-const delta = -41;
+const boundaryR = -41;
+const boundaryL = -11;
 
 /* -------- Environment Parameters -------- */
 param initial_larvae = 20;
 param initial_nurses = 10;
 param initial_forager = 10;
 
-param temperature = 29;
+param temperature = 12.8;
 param foodAvailabilityRate = 1; /* Ranges between 0 and 1 */
 
 /* -------- Generic Constants -------- */
@@ -71,7 +72,7 @@ const queenFertilityRate = 0.1;
 const baseConsumeEnergyRate = 0.25;
 const eatRate = 0.5;
 const transformationRate = 0.5;
-const larvaGrowRate = 0.2;
+const larvaGrowRate = 0.3;
 
 const nurseWorkRate = 0.50;
 const nurseFeedLarvaRate = 0.50;
@@ -114,8 +115,8 @@ const foragerConsumeEnergyMultiplier = 1;
  *             |                                                                         
  *
  */
-const temperatureInfluence = 0.99 - 0.98 * ( beta / (2 * (sigma + DELTA_TEMPERATURE) * gamma * (1 / beta))) * (e ^ -(((temperature - IDEAL_TEMPERATURE) / (sigma + DELTA_TEMPERATURE))^beta)) * (1 / (1 + e ^ (alpha*(temperature + delta))));
-const eggs = 10; /* number of eggs the queen will lay */
+const temperatureInfluence = 0.99 - 0.98 * ( beta / (2 * (sigma + DELTA_TEMPERATURE) * gamma * (1 / beta))) * (e ^ -(((temperature - IDEAL_TEMPERATURE) / (sigma + DELTA_TEMPERATURE))^beta)) * (1 / (1 + e ^ (alpha*(temperature + boundaryR)))) * (1 / (1 + e ^ (-alpha*(temperature + boundaryL))));
+const eggs = 15; /* number of eggs the queen will lay */
 
 /* ======================================= */
 /*                  LABELS                 */
@@ -243,6 +244,7 @@ measure n_forager = #foragers;
 measure n_larvae = #larvae;
 measure n_death = #DA;
 measure n_larvae_death = #DL;
+measure n_ants = #Q[i for i in [0,ENERGY]] + #nurses + #foragers + #larvae;
 
 predicate colony_growing = (#nurses + #foragers + #larvae > initial_nurses + initial_forager + initial_larvae);
 predicate colony_survived = (#Q[i for i in [0,ENERGY]] > 0);
