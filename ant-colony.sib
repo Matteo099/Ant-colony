@@ -7,4 +7,3 @@ replica 10
 init "initial"
 simulate
 save output "./results" prefix "ac-test_" postfix "__"
-fpt "colony_stationary"

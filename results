@@ -1,2 +1,5 @@
-Stationary state (both small and big nest):
-Temperature = 12.8, foodAvailability = 1;
+Stationary state (small nest)
+Temperature = 12.3, foodAvailability = 1;
+
+Stationary state (big nest)
+Temperature = 11.9, foodAvailability = 1;
