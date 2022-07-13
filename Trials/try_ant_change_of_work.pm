@@ -6,69 +6,72 @@
   - if there is a little food, the Nurses are more likely to become Foragers 
 */
 
-const ENERGY = 10;
 const FOOD_STORAGE = 10;
 
-species Q of [0, ENERGY]*[0, FOOD_STORAGE]; 	/* Queen    : Q[i, j] queen with hungry level i, and j is the food storage */
-species N of [0, ENERGY]; 		                /* Nurse    : N[i] hunger of the nurse ant */
-species F of [0, ENERGY]; 		                /* Forager  : F[i] hunger of the forager ant */
-species D;                                    /* A useless agents (used only to check the percentage operator effects with N and F on the rules) */
+species Q of [0, FOOD_STORAGE]; 	/* Queen    : Q[i, j] queen with hungry level i, and j is the food storage */
+species N; 		                /* Nurse    : N[i] hunger of the nurse ant */
+species F; 		                /* Forager  : F[i] hunger of the forager ant */
+species D;                    /* A useless agents (used only to check the percentage operator effects with N and F on the rules) */
 
 /* ======================================= */
 /*                  LABELS                 */
 /* ======================================= */
-label nurses = { N[i for i in [0,ENERGY]] }
-label foragers = { F[i for i in [0,ENERGY]] }
-label workers = { N[i for i in [0,ENERGY]], F[i for i in [0,ENERGY]] }
+label nurses = { N }
+label foragers = { F }
+label workers = { N, F }
+
+rule new_nurse for f in [0, FOOD_STORAGE] {
+  Q[f] -[ 0.1 ]-> Q[f]|N<10>
+}
 
 /* Change of work rules */
-rule nurse_becomes_forager for i in [0, ENERGY/2] and j in [0, ENERGY] and f in [0, FOOD_STORAGE] {
-  Q[j,f]|N[i] -[ #nurses * (1 - (f/2) / (FOOD_STORAGE-1)) * (#nurses / #workers) ]-> Q[j,f]|F[i]
+rule nurse_becomes_forager for f in [0, FOOD_STORAGE] {
+  Q[f]|N -[ #nurses * (1 - (f/2) / (FOOD_STORAGE-1)) * (#nurses / #workers) ]-> Q[f]|F
 }
-rule forager_becomes_nurse for i in [0, ENERGY/2] and j in [0, ENERGY] and f in [0, FOOD_STORAGE] {
-  Q[j,f]|F[i] -[ #foragers * ((f / (FOOD_STORAGE-1)) / 2) * (#foragers / #workers) ]-> Q[j,f]|N[i]
+rule forager_becomes_nurse for f in [0, FOOD_STORAGE] {
+  Q[f]|F -[ #foragers * ((f / (FOOD_STORAGE-1)) / 2) * (#foragers / #workers) ]-> Q[f]|N
 }
 
-
-measure n_queen = #Q[i, j for i in [0,ENERGY] and j in [0,FOOD_STORAGE]];
+measure n_queen = #Q[j for j in [0,FOOD_STORAGE]];
 measure n_nurse = #nurses;
 measure n_forager = #foragers;
 measure n_workers = #workers;
 measure p_nurse = %nurses;
 measure p_forager = %foragers;
+measure p_workers = 1 / (1 + #nurses + #foragers);
 
 /* Balanced system with a lot of food; Expectation: 10 Foragers, 10 Nurses */
-system balancedFoodH = Q[0, 9]<1>
-                        |N[0]<10>
-                        |F[0]<10>
+system balancedFoodH = Q[9]<1>
+                        |N<10>
+                        |F<10>
                         |D<100>;
 
 /* Balanced system with a little food; Expectation: 5 Nurses, 15 Foragers */
-system balancedFoodL = Q[0, 1]<1>
-                        |N[0]<10>
-                        |F[0]<10>
+system balancedFoodL = Q[1]<1>
+                        |N<10>
+                        |F<10>
                         |D<100>;
 
 /* Balanced system with half food; Expectation: 7 Nurses, 13 Foragers */
-system balancedFoodM = Q[0, 5]<1>
-                        |N[0]<10>
-                        |F[0]<10>
+system balancedFoodM = Q[5]<1>
+                        |N<10>
+                        |F<10>
                         |D<100>;
 
 /* Unbalanced system with a lot of food;  Expectation: 10 Foragers, 10 Nurses */
-system unbalancedFoodH = Q[0, 9]<1>
-                          |N[0]<5>
-                          |F[0]<15>
+system unbalancedFoodH = Q[9]<1>
+                          |N<5>
+                          |F<15>
                           |D<100>;
 
 /* Unbalanced system with a little food; Expectation: 5 Nurses, 15 Foragers */
-system unbalancedFoodL = Q[0, 1]<1>
-                          |N[0]<5>
-                          |F[0]<15>
+system unbalancedFoodL = Q[1]<1>
+                          |N<5>
+                          |F<15>
                           |D<100>;
 
 /* Unbalanced system with half food; Expectation: 7 Nurses, 13 Foragers */
-system unbalancedFoodM = Q[0, 5]<1>
-                          |N[0]<5>
-                          |F[0]<15>
+system unbalancedFoodM = Q[5]<1>
+                          |N<5>
+                          |F<15>
                           |D<100>;
