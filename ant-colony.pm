@@ -49,14 +49,18 @@ param initial_larvae = 20;
 param initial_nurses = 10;
 param initial_forager = 10;
 
-param temperature = 12.8;
+param temperature = 29;
 param foodAvailabilityRate = 1; /* Ranges between 0 and 1 */
 
 /* -------- Generic Constants -------- */
-const ENERGY = 10;              /* Energy (or hungry) level of an ant: 0 = no hunger (full of energy), 10 = really hungry (no energy) */
-const FOOD_STORAGE = 10;        /* Food storage: 0 = no food, 10 = storage full of food */
+const ENERGY = 4;               /* Energy (or hungry) level of an ant: 0 = no hunger (full of energy), 10 = really hungry (no energy) */
+const FOOD_STORAGE = 20;        /* Food storage: 0 = no food, 10 = storage full of food */
 const IDEAL_TEMPERATURE = 29;   /* The ideal temperature for the ant is between 23 and 35 °C; we can consider 29°C and the tollerance +-10°C */
 const DELTA_TEMPERATURE = 10;   /* The delta of the temperature (tollerance of the ant +- 10°C) */
+
+/* -------- Helper constants --------- */
+const initial_ants = initial_nurses + initial_forager + initial_larvae;
+const delta_ants = initial_ants * 0.25; /* 25% tollerance */
 
 /* -------- Agents -------- */
 species H of [0, FOOD_STORAGE];                 /* Nest (home)  : H[i] specify the amount of food in the nest */
@@ -76,11 +80,11 @@ const larvaGrowRate = 0.3;
 
 const nurseWorkRate = 0.50;
 const nurseFeedLarvaRate = 0.50;
-const nurseFeedQueenRate = 0.75;
+const nurseFeedQueenRate = 1;
 const nurseCleanRate = 0.25;
 const foragerWorkRate = 0.750;
 
-const queenDeathRate = 0.001; /* It is really rare that the queen dies */
+const queenDeathRate = 0.01; /* It is really rare that the queen dies: it can remain without eating for 6 months! */
 const larvaDeathRate = 1.0;  /* If larva is not well feeded, it will die */
 const workerDeathRate = 0.25; 
 
@@ -116,7 +120,7 @@ const foragerConsumeEnergyMultiplier = 1;
  *
  */
 const temperatureInfluence = 0.99 - 0.98 * ( beta / (2 * (sigma + DELTA_TEMPERATURE) * gamma * (1 / beta))) * (e ^ -(((temperature - IDEAL_TEMPERATURE) / (sigma + DELTA_TEMPERATURE))^beta)) * (1 / (1 + e ^ (alpha*(temperature + boundaryR)))) * (1 / (1 + e ^ (-alpha*(temperature + boundaryL))));
-const eggs = 15; /* number of eggs the queen will lay */
+const eggs = 50; /* number of eggs the queen will lay */
 
 /* ======================================= */
 /*                  LABELS                 */
@@ -163,11 +167,11 @@ rule forager_consume_energy for i in [0, ENERGY-1] {
 
 /* ----------- Eating rules ------------ */
 /* When an ant eats then the food from the global storage is decreased by one. Only Nurses and Foragers eat food directly. */
-rule nurse_hungry_eats for i in [ENERGY/2, ENERGY] and f in [2, FOOD_STORAGE] {
-  H[f]|N[i] -[ eatRate ]-> H[f-1]|N[i-1]
+rule nurse_hungry_eats for i in [ENERGY/2, ENERGY] and f in [FOOD_STORAGE/2, FOOD_STORAGE] {
+  H[f]|N[i] -[ i / ENERGY * eatRate ]-> H[f-1]|N[i-1]
 }
-rule forager_hungry_eats for i in [ENERGY/2, ENERGY] and f in [2, FOOD_STORAGE] {
-  H[f]|F[i] -[ eatRate ]-> H[f-1]|F[i-1]
+rule forager_hungry_eats for i in [ENERGY/2, ENERGY] and f in [FOOD_STORAGE/2, FOOD_STORAGE] {
+  H[f]|F[i] -[ i / ENERGY * eatRate ]-> H[f-1]|F[i-1]
 }
 
 /* ------------- Work rules ------------- */
@@ -181,7 +185,7 @@ rule nurse_feed_queen for i in [0, ENERGY-1] and j in [ENERGY/4, ENERGY] and f i
   /* Since the queen is bigger that the normal ants, it will eat more food */
   N[i]|Q[j]|H[f] -[ nurseFeedQueenRate * (1 - temperatureInfluence) ]-> N[i+1]|Q[j-1]|H[f-2]
 }
-rule nurse_feed_larva for i in [0, ENERGY-1] and b in [ENERGY/2, ENERGY] and f in [3, FOOD_STORAGE] {
+rule nurse_feed_larva for i in [0, ENERGY-1] and b in [ENERGY/2, ENERGY] and f in [FOOD_STORAGE/2, FOOD_STORAGE] {
   N[i]|L[b]|H[f] -[ nurseFeedLarvaRate * (1 - temperatureInfluence) ]-> N[i+1]|L[b-1]|H[f-1]
 }
 rule nurse_clean_nest for i in [0, ENERGY-1] and f in [0, FOOD_STORAGE-1] {
@@ -194,32 +198,32 @@ rule forager_works for i in [0, ENERGY-1] and f in [0, FOOD_STORAGE-2] {
 /* ------------- Die rules ------------- */
 /* The probability of death mainly depends on the energy level: the hungrier the ant, the more likely it is to die.
  * However, the probability of death also depends on the kind of ant:
- * - it is really rare that the queen dies;
- * - it is more likely the larva dies if not well feeded;
+ * - it is really rare that the queen dies; the probability of queen's death increases in small colony;
+ * - it is more likely the larva dies if not well feeded or if the temperature is not adequate;
  * - the worker death rate is pretty low.
  */
-rule queen_dies for i in [0, ENERGY] when i > ENERGY / 4 * 3 {
-  Q[i] -[ i / ENERGY * queenDeathRate ]-> DA
+rule queen_dies { /* for i in [ENERGY / 4 * 3, ENERGY] */
+  Q[ENERGY-1] -[ queenDeathRate * %Q[ENERGY-1] ]-> DA
 }
-rule larva_dies for i in [0, ENERGY] when i > ENERGY / 4 * 3 {
-  L[i] -[ i / ENERGY * larvaDeathRate ]-> DL
+rule larva_dies for i in [ENERGY / 4 * 2, ENERGY] {
+  L[i] -[ (i / ENERGY * larvaDeathRate) / 2 + temperatureInfluence / 2 ]-> DL
 }
-rule nurse_dies for i in [0, ENERGY] when i > ENERGY / 4 * 3 {
+rule nurse_dies for i in [ENERGY / 4 * 3, ENERGY] {
   N[i] -[ i / ENERGY * workerDeathRate ]-> DA
 }
-rule forager_dies for i in [0, ENERGY] when i > ENERGY / 4 * 3 {
+rule forager_dies for i in [ENERGY / 4 * 3, ENERGY] {
   F[i] -[ i / ENERGY * workerDeathRate ]-> DA
 }
 
 /* ------- Larvae transformation rules -------- */
-/* When a larva is grow enough, it will turn into: Nurse or Forager.
- * The probability is the same for both, and it is 50%.
+/* When a larva is grow enough, it will turn into: Nurse or Forager; the probability is the same for both, and it is 50%.
+ * The grow is accelerated by the number of the larvae: the more larvae there are in the nest, faster they will become adults.
  */
 rule larva_becomes_nurse for i in [0, ENERGY] {
-  L[i] -[ transformationRate * larvaGrowRate ]-> N[i]
+  L[i] -[ transformationRate * larvaGrowRate * #larvae * %larvae ]-> N[i]
 }
 rule larva_becomes_forager for i in [0, ENERGY] {
-  L[i] -[ transformationRate * larvaGrowRate ]-> F[i]
+  L[i] -[ transformationRate * larvaGrowRate * #larvae * %larvae ]-> F[i]
 }
 
 /* ------------- Change of work rules -------------- */
@@ -246,7 +250,8 @@ measure n_death = #DA;
 measure n_larvae_death = #DL;
 measure n_ants = #Q[i for i in [0,ENERGY]] + #nurses + #foragers + #larvae;
 
-predicate colony_growing = (#nurses + #foragers + #larvae > initial_nurses + initial_forager + initial_larvae);
+predicate colony_stationary = ((#nurses + #foragers + #larvae + delta_ants >= initial_ants) || (#nurses + #foragers + #larvae - delta_ants <= initial_ants));
+predicate colony_growing = (#nurses + #foragers + #larvae > initial_ants);
 predicate colony_survived = (#Q[i for i in [0,ENERGY]] > 0);
 predicate colony_dying = ( #Q[i for i in [0,ENERGY]] == 0 );
 

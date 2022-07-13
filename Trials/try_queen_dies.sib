@@ -1,0 +1,9 @@
+module "population"
+load "try_queen_dies.pm"
+add all measures
+deadline 1000
+dt 1.0
+replica 10
+init "configA"
+simulate
+save output "./results" prefix "try-queen-dies_summary_" postfix "__"

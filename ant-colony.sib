@@ -1,9 +1,10 @@
 module "population"
 load "ant-colony.pm"
 add all measures
-deadline 5000
+deadline 1000
 dt 1.0
 replica 10
 init "initial"
 simulate
-save output "./results/20-10-10-12.8-1" prefix "ac-stationary-test_" postfix "__"
+save output "./results" prefix "ac-test_" postfix "__"
+fpt "colony_stationary"
