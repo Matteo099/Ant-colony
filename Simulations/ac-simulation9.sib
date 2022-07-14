@@ -8,9 +8,9 @@ replica 10
 set "initial_larvae" 20.0
 set "initial_nurses" 100.0
 set "initial_forager" 100.0
-set "temperature" 10.0
+set "temperature" 5.0
 set "foodAvailabilityRate" 1.0
 
 init "initial"
 simulate
-save output "./results/20-100-100-10-1" prefix "ac-old_colony-low_temperature-summary_" postfix "__"
+save output "./results/20-100-100-5-1" prefix "ac-old_colony-lT-hF-summary_" postfix "__"

@@ -4,8 +4,8 @@ load "../ant-colony.pm"
 set "initial_larvae" 20.0
 set "initial_nurses" 10.0
 set "initial_forager" 10.0
-set "temperature" 10.0
-set "foodAvailabilityRate" 0.25
+set "temperature" 5.0
+set "foodAvailabilityRate" 0.5
 
 init "initial"
 
@@ -14,4 +14,4 @@ deadline 100
 dt 1.0
 replica 10
 simulate
-save output "./results/20-10-10-10-0.25" prefix "ac-new_colony-low_temperature-low_food-summary_" postfix "__"
+save output "./results/20-10-10-5-0.5" prefix "ac-new_colony-lT-mF-summary_" postfix "__"

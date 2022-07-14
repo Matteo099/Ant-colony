@@ -1,5 +1,30 @@
-Stationary state (small nest)
-Temperature = 12.3, foodAvailability = 1;
+#EXPECTATION
+Colonia piccola (20L, 10N, 10F)
+29 °C e 1 F => crescita (non esponenziale)
+29/23 °C e 0.5F => crescita lenta
+~12 °C e 1 F => stazionario/decrescita
+5 °C e 1 F => morte
 
-Stationary state (big nest)
-Temperature = 11.9, foodAvailability = 1;
+Colonia grande (20L, 100N, 100F)
+29 °C e 1 F => crescita esponenziale
+29/23 °C e 0.5F => crescita non esponenziale
+~12 °C e 1 F => stazionario/lieve crescita
+5 °C e 1 F => decrescita/morte
+
+
+#RESULT (1000 dt, 10 replica)
+Colonia piccola (20L, 10N, 10F)
+29 °C e 1 F => crescita (non esponenziale) - start 21, end 500, queen alive
+29 °C e 0.5F => crescita lenta - start 21, end 130, queen alive
+> 13 °C lives
+~12.5 °C e 1 F => stazionario/decrescita - start 21, end 30, queen some case alive some other not.
+< 12 °C dies
+5 °C e 1 F => morte - start 21, end 0, queen dies
+
+Colonia grande (20L, 100N, 100F)
+29 °C e 1 F => crescita esponenziale - start 201, end 1100, queen alive, model OK
+29 °C e 0.5F => crescita non esponenziale - start 201, end 600, queen alive, model OK
+> 12 °C lives
+~11.5 °C e 1 F => stazionario/decrescita - start 201, end 180, queen some case alive some other not.
+< 11 °C dies
+5 °C e 1 F => decrescita/morte - start 201, end 0, queen dies

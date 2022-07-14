@@ -13,4 +13,4 @@ set "foodAvailabilityRate" 1.0
 
 init "initial"
 simulate
-save output "./results/20-100-100-29-1" prefix "ac-old_colony-ideal_conditions-summary_" postfix "__"
+save output "./results/20-100-100-29-1" prefix "ac-old_colony-iT-hF-summary_" postfix "__"
