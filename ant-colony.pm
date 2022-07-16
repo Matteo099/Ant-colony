@@ -46,10 +46,10 @@ const boundaryL = -11;
 
 /* -------- Environment Parameters -------- */
 param initial_larvae = 20;
-param initial_nurses = 100;
-param initial_forager = 100;
+param initial_nurses = 10;
+param initial_forager = 10;
 
-param temperature = 5;
+param temperature = 29;
 param foodAvailabilityRate = 1; /* Ranges between 0 and 1 */
 
 /* -------- Generic Constants -------- */
@@ -73,17 +73,17 @@ species DA; 			                              /* Death ant */
 
 /* -------- Probability Rates & Multipliers -------- */
 const eggsLaysDelayRate     = 0.1;
-const queenFertilityRate    = 1.0;
+const queenFertilityRate    = 1.0;  /* Ranges between 0.2 and 1 -> (0.2, 1] */
 
 const baseConsumeEnergyRate = 0.25;
-const eatRate               = 0.5;
+const eatRate               = 1.0;
 const transformationRate    = 0.5;
 const larvaGrowRate         = 0.2;
 
-const nurseFeedLarvaRate    = 0;
-const nurseFeedQueenRate    = 1;
-const nurseCleanRate        = 0.25;
-const foragerWorkRate       = 0.75;
+const nurseFeedQueenRate    = 2.0;
+const nurseFeedLarvaRate    = 0.6;  /* Ranges between 0.5 and 1 -> (0.5, 1] */
+const nurseCleanRate        = 0.25; /* Ranges between 0.2 and 1 -> (0.2, 1] */
+const foragerWorkRate       = 0.75; /* Ranges between 0.5 and 1 -> (0.5, 1] */
 
 const changeOfWorkRate      = 0.5;
 
@@ -134,6 +134,7 @@ const foragerConsumeEnergyMultiplier  = 1;
  */
 const temperatureInfluence = 0.99 - 0.98 * ( beta / (2 * (sigma + DELTA_TEMPERATURE) * gamma * (1 / beta))) * (e ^ -(((temperature - IDEAL_TEMPERATURE) / (sigma + DELTA_TEMPERATURE))^beta)) * (1 / (1 + e ^ (alpha*(temperature + boundaryR)))) * (1 / (1 + e ^ (-alpha*(temperature + boundaryL))));
 const eggs = 30; /* number of eggs the queen will lay */
+const antBound = eggs * 7;
 
 /* ======================================= */
 /*                  LABELS                 */
@@ -142,14 +143,15 @@ label nurses = { N[i for i in [0,ENERGY]] }
 label foragers = { F[i for i in [0,ENERGY]] }
 label workers = { N[i for i in [0,ENERGY]], F[i for i in [0,ENERGY]] }
 label larvae = { L[i for i in [0,ENERGY]] }
-label ants = { N[i for i in [0,ENERGY]], F[i for i in [0,ENERGY]], Q[i for i in [0,ENERGY]] } /* L[i for i in [0,ENERGY]] */
+label ants = { N[i for i in [0,ENERGY]], F[i for i in [0,ENERGY]], Q[i for i in [0,ENERGY]] }
+label starve_l_q = { Q[i for i in [ENERGY/2,ENERGY]], L[i for i in [ENERGY/2,ENERGY]] } 
 
 
 /* ======================================= */
 /*                   RULES                 */
 /* ======================================= */
 /* --------- Reproduction rules ---------- */
-/* The queen will lay eggs depending on 6 factor: 
+/* The queen will lay eggs depending on 7 factor: 
  * - the fertility (queenFertilityRate);
  * - the more satiated the queen, the more likely she is to lay eggs (1.0 - i / ENERGY);
  * - the temperature;
@@ -161,7 +163,7 @@ label ants = { N[i for i in [0,ENERGY]], F[i for i in [0,ENERGY]], Q[i for i in 
  * The queen will lay a number of eggs that is constant (eggs) and consume a lot of energy.
  */
 rule queen_lays_eggs for i in [0, ENERGY/2] and f in [FOOD_STORAGE/2, FOOD_STORAGE] {
-  Q[i]|H[f] -[ (1.0 - i / ENERGY) * ((f / FOOD_STORAGE) ^ 2) * (1 - temperatureInfluence) * queenFertilityRate * (1 / (#larvae + 1)) * ((#ants * foodAvailabilityRate) / 200) ]-> Q[i+2]|H[f]|L[0]<eggs>
+  Q[i]|H[f] -[ (1.0 - i / ENERGY) * ((f / FOOD_STORAGE) ^ 2) * (queenFertilityRate - temperatureInfluence / 5) * (1 / (#larvae + 1)) * ((#ants * (foodAvailabilityRate ^ 0.5)) / antBound) ]-> Q[i+2]|H[f]|L[0]<eggs>
 }
 
 /* ------- Consume energy rules --------- */
@@ -187,11 +189,11 @@ rule forager_consume_energy for i in [0, ENERGY-1] {
 /* 
  * When an ant eats then the food from the global storage is decreased by one. Only Nurses and Foragers eat food directly.
  */
-rule nurse_hungry_eats for i in [ENERGY/2, ENERGY] and f in [FOOD_STORAGE/2, FOOD_STORAGE] {
-  N[i]|H[f] -[ i / ENERGY * eatRate * (1 // #ants) ]-> N[i-1]|H[f-1]
+rule nurse_hungry_eats for i in [ENERGY/2, ENERGY] and f in [1, FOOD_STORAGE] {
+  N[i]|H[f] -[ i / ENERGY * eatRate ]-> N[i-1]|H[f-1]
 }
-rule forager_hungry_eats for i in [ENERGY/2, ENERGY] and f in [FOOD_STORAGE/2, FOOD_STORAGE] {
-  F[i]|H[f] -[ i / ENERGY * eatRate * (1 // #ants) ]-> F[i-1]|H[f-1]
+rule forager_hungry_eats for i in [ENERGY/2, ENERGY] and f in [1, FOOD_STORAGE] {
+  F[i]|H[f] -[ i / ENERGY * eatRate ]-> F[i-1]|H[f-1]
 }
 
 /* ------------- Work rules ------------- */
@@ -202,16 +204,16 @@ rule forager_hungry_eats for i in [ENERGY/2, ENERGY] and f in [FOOD_STORAGE/2, F
  * Moreover, the Foragers are also influenced by the availability of the food: more food there is, greater it will be for food to be harvested.
  */
 rule nurse_feed_queen for i in [0, ENERGY-1] and j in [2, ENERGY] and f in [2, FOOD_STORAGE] {
-  N[i]|Q[j]|H[f] -[ nurseFeedQueenRate * #nurses * %nurses ]-> N[i+1]|Q[j-2]|H[f-2]
+  N[i]|Q[j]|H[f] -[ nurseFeedQueenRate * (((#nurses) * 2 + 1) / (#ants + 1)) ]-> N[i+1]|Q[j-2]|H[f-2]
 }
 rule nurse_feed_larva for i in [0, ENERGY-1] and b in [ENERGY/2, ENERGY] and f in [FOOD_STORAGE/2, FOOD_STORAGE] {
-  N[i]|L[b]|H[f] -[ nurseFeedLarvaRate * (1 - temperatureInfluence) * (f / FOOD_STORAGE) * #nurses * %nurses ]-> N[i+1]|L[b-1]|H[f-1]
+  N[i]|L[b]|H[f] -[ (nurseFeedLarvaRate - temperatureInfluence / 2) * (f / FOOD_STORAGE) * (#nurses / #ants) ]-> N[i+1]|L[b-1]|H[f-1]
 }
 rule nurse_clean_nest for i in [0, ENERGY-1] and f in [0, FOOD_STORAGE-1] {
-  N[i]|H[f]|DL -[ nurseCleanRate * (1 - temperatureInfluence) * (#DL / eggs) ]-> N[i]|H[f+1]
+  N[i]|H[f]|DL -[ (nurseCleanRate - temperatureInfluence / 5) * (#DL / eggs) ]-> N[i]|H[f+1]
 }
 rule forager_collects_food for i in [0, ENERGY-1] and f in [0, FOOD_STORAGE-3] {
-  F[i]|H[f] -[ foragerWorkRate * (1 - temperatureInfluence) * foodAvailabilityRate * #foragers * %foragers ]-> F[i+1]|H[f+3]
+  F[i]|H[f] -[ (foragerWorkRate - temperatureInfluence / 2) * foodAvailabilityRate * (#foragers / #ants) ]-> F[i+1]|H[f+3]
 }
 
 /* ------------- Die rules ------------- */
@@ -250,14 +252,14 @@ rule larva_becomes_forager for i in [0, ENERGY] {
 
 /* ------------- Change of work rules -------------- */
 /* During the life, an ant (Forager or Nurse) that is not dying ([0, ENERGY / 4 * 3]) can change the job:
- * - A Nurse can become a Forager if the amount of food stored in the nest is scarce and the percentage of Nurses increase;
- * - Viceversa, a Forager can become a Nurse if the amount of food stored in the nest is plentiful and the percentage of Foragers increase.
+ * - A Nurse can become a Forager if the amount of food stored in the nest is scarce, the starve ants is low and the percentage of Nurses increase;
+ * - Viceversa, a Forager can become a Nurse if the amount of food stored in the nest is plentiful, the starve ants is high and the percentage of Foragers increase.
  */
 rule nurse_becomes_forager for i in [0, ENERGY / 4 * 3] and f in [0, FOOD_STORAGE] {
-  N[i]|H[f] -[ changeOfWorkRate * #nurses * (1 - (f/2) / (FOOD_STORAGE - 1)) * (#nurses // #workers) ]-> F[i]|H[f]
+  N[i]|H[f] -[ changeOfWorkRate * #nurses * (1 - (f / (FOOD_STORAGE - 1) + #starve_l_q / (#larvae + 1)) / 2) * (#nurses // #workers) ]-> F[i]|H[f]
 }
 rule forager_becomes_nurse for i in [0, ENERGY / 4 * 3] and f in [0, FOOD_STORAGE] {
-  F[i]|H[f] -[ changeOfWorkRate * #foragers * ((f / (FOOD_STORAGE - 1)) / 2) * (#foragers // #workers) ]-> N[i]|H[f]
+  F[i]|H[f] -[ changeOfWorkRate * #foragers * (f / (FOOD_STORAGE - 1) + #starve_l_q / (#larvae + 1)) / 2 * (#foragers // #workers) ]-> N[i]|H[f]
 }
 
 
@@ -266,13 +268,15 @@ rule forager_becomes_nurse for i in [0, ENERGY / 4 * 3] and f in [0, FOOD_STORAG
 /* ======================================= */
 measure n_queen = #Q[i for i in [0,ENERGY]];
 measure n_nurse = #nurses;
+measure p_nurse = %nurses;
 measure n_forager = #foragers;
+measure p_forager = %foragers;
 measure n_larvae = #larvae;
 measure p_larvae = %larvae;
 measure n_ants = #ants;
 measure n_death = #DA;
 measure n_larvae_death = #DL;
-measure p_d = 1 // #ants;
+measure n_starve_l_q = #starve_l_q;
 
 predicate colony_stationary = ((#nurses + #foragers + #larvae + delta_ants >= initial_ants) || (#nurses + #foragers + #larvae - delta_ants <= initial_ants));
 predicate colony_growing = (#nurses + #foragers + #larvae > initial_ants);

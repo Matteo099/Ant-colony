@@ -14,4 +14,4 @@ deadline 100
 dt 1.0
 replica 10
 simulate
-save output "./results/20-10-10-5-0.5" prefix "ac-new_colony-lT-mF-summary_" postfix "__"
+save output "./results/20-10-10-5-0.5" prefix "nc-lT-mF-summary_" postfix "__"
