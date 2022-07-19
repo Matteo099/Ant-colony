@@ -1,0 +1,20 @@
+There are 12 simulations (ac-simulation*.sib), each specifing a particular scenario.
+
+The first 6 simulations are giong to specify the following situations:
+1- a new colony (20 larvae, 10 foragers, 10 nurses and 1 queen) that is located in an area with high food availability (1.0) and optimal temperature (29 °C);  
+2- a new colony (20 larvae, 10 foragers, 10 nurses and 1 queen) that is located in an area with high food availability (1.0) and temperature around 25 °C (that is still a good temperature);  
+3- a new colony (20 larvae, 10 foragers, 10 nurses and 1 queen) that is located in an area with high food availability (1.0) and temperature around 10 °C (ostile temperature);
+4- a new colony (20 larvae, 10 foragers, 10 nurses and 1 queen) that is located in an area with low food availability (0.25) and optimal temperature (29 °C);  
+5- a new colony (20 larvae, 10 foragers, 10 nurses and 1 queen) that is located in an area with low food availability (0.25) and temperature around 25 °C (that is still a good temperature); 
+6- a new colony (20 larvae, 10 foragers, 10 nurses and 1 queen) that is located in an area with low food availability (0.25) and temperature around 10 °C (ostile temperature);  
+
+The last 6 simulations are giong to specify the following situations:
+1- an old colony (20 larvae, 100 foragers, 100 nurses and 1 queen) that is located in an area with high food availability (1.0) and optimal temperature (29 °C);  
+2- an old colony (20 larvae, 100 foragers, 100 nurses and 1 queen) that is located in an area with high food availability (1.0) and temperature around 25 °C (that is still a good temperature);  
+3- an old colony (20 larvae, 100 foragers, 100 nurses and 1 queen) that is located in an area with high food availability (1.0) and temperature around 10 °C (ostile temperature);
+4- an old colony (20 larvae, 100 foragers, 100 nurses and 1 queen) that is located in an area with low food availability (0.25) and optimal temperature (29 °C);  
+5- an old colony (20 larvae, 100 foragers, 100 nurses and 1 queen) that is located in an area with low food availability (0.25) and temperature around 25 °C (that is still a good temperature); 
+6- an old colony (20 larvae, 100 foragers, 100 nurses and 1 queen) that is located in an area with low food availability (0.25) and temperature around 10 °C (ostile temperature);  
+
+The output are in the folder with name: initial_larvae-initial_nurses-initial_forager-temperature-foodAvailabilityRate.
+Example: 20-10-10-29-1 means 20 larvae, 10 nurses, 10 forager, 29 °C, 1.0 foodAvailabilityRate.

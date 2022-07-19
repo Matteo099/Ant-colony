@@ -1,0 +1,16 @@
+module "population"
+load "../ant-colony.pm"
+add all measures
+deadline 1000
+dt 1.0
+replica 10
+
+set "initial_larvae" 20.0
+set "initial_nurses" 100.0
+set "initial_forager" 100.0
+set "temperature" 12.5
+set "foodAvailabilityRate" 0.5
+
+init "initial"
+simulate
+save output "./results/20-100-100-12.5-0.5" prefix "oc-mT-mF-summary_" postfix "__"

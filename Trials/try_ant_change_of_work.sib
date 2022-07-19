@@ -1,0 +1,9 @@
+module "population"
+load "try_ant_change_of_work.pm"
+add all measures
+deadline 1000
+dt 1.0
+replica 10
+init "unbalancedFoodH"
+simulate
+save output "./results/change-of-work" prefix "try-ant-change-of-work_summary_" postfix "__"
