@@ -6,4 +6,4 @@ dt 1.0
 replica 10
 init "initial"
 simulate
-save output "./results/20-10-10-29-1" prefix "nc-iT-hF-summary_" postfix "__"
+save output "./results/test" prefix "summary_" postfix "__"

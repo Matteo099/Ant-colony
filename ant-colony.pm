@@ -1,6 +1,26 @@
 /*
  * Matteo Romagnoli - PAS Exam
  *
+ * Ant Colony
+ * The ant colony is composed by different type of ants, each having a particular role:
+ * - Queen (Q): is the queen of the colony, it is going to depositate new Eggs (Larve), depending on the food storage & queen hungry / mass;
+ * - Nurses (N): this ants are going to operate always inside the nest, and provide food to the queen & larves;
+ * - Foragers (F): they collect food from the outside and provide nutrients for the nest. They never operate inside the nest;
+ * - Larvae (L): with the term Larvae we refer to Eggs, Larvae and Pupi, and so, they are not still ants, but they require food in order to grow; when old enough (adult ant), they become Foragers or Nurses.
+ * 
+ * Nurses and Foragers can change their role depending on the amount of food stored in the nest.
+ *
+ * In particular 2 factors influence the colony survival & grow:
+ * 1. Temperature: the ideal temperature is between 23 and 35 °C (we assume 29 °C as the ideal temperature); at these temperatures, ants are more likely to forage for food and maintain an active colony (optimal metabolism).
+ * 2. Quantity of food in the environment.
+ * 
+ * The consumption of food depends on the role of the ant, if it work inside or outside (temperature), the level of energy and the global food storage.
+ * 
+ * The temperature has effects on workers' size, immature ants' development, and queen's reproduction:
+ * 1- There is no effects of temperature and food on ant colony’s energy and population dynamics.
+ * 2- Temperature elevations (or diminuition) will increase the risk of ant colonies for dying out because they need to consume more energy to sustain themselves.
+ * 3- Changes of food availability will affect energy and population dynamics of ant colonies.
+ *
  * References: 
  *  https://harvardforest.fas.harvard.edu/ants/life-cycle
  *	https://onlinelibrary.wiley.com/doi/full/10.1111/gcb.16140 
@@ -9,33 +29,12 @@
  *	https://www.terminix.com/ants/behavior/do-ants-hibernate
  *  https://www.ted.com/talks/deborah_gordon_the_emergent_genius_of_ant_colonies
  *  https://dc.etsu.edu/cgi/viewcontent.cgi?article=3757&context=etd
- *
- * Ant Colony
- * The ant colony is composed by different type of ants, each having a particular role:
- * - Queen (Q): is the queen of the colony, it is going to depositate new Eggs (Larve), depending on the food storage & queen hungry / mass;
- * - Nurses (N): this ants are going to operate always inside the nest, and provide food to the queen & larves;
- * - Foragers (F): they collect food from the outside and provide nutrient for the nest. They never operate inside the nest;
- * - Larvae (L): with the term Larvae we refer to Eggs, Larvae and Pupi, and so, they are not still ants, but they require food in order to grow; when old enough (adult ant), they become Foragers or Nurses.
- * 
- * Nurses and Foragers can change their role depending on the amount of food stored in the nest.
- *
- * In particular 2 factors influence the colony survival & grow:
- * 1. Temperature: the ideal tempherature is between 23 and 35 °C (we assume 29 °C as the ideal temperature); at these temperatures, ants are more likely to forage for food and maintain an active colony (optimal metabolism).
- * 2. Quantity of food in the environment.
- * 
- * The consumption of food depends on the role of the ant, if it work inside or outside (temperature), the level of energy and the global food storage.
- * 
- * The temperature has effects on workers' size, immature ants' development, and queen's reproduction:
- * 1- There is no effects of temperature and food on ant colony’s energy and population dynamics.
- * 2- Temperature elevations (or diminuition) will increase the risk of ant colonies for dying out because they need to consume more energy to sustain themselves.
- * 3- Changes of food availability will affect energy and population dynamics of ant colonies. --NO-> Rich food sources can protect ant colonies from decaying even in very high temperature. <-NO--
- *
  */
 
 /* ======================================= */
 /*              CONST & AGENTS             */
 /* ======================================= */
-/* -------- Math constants -------- */
+/* -------- Maths constants -------- */
 const e = 2.718281;
 const beta = 4;
 const sigma = 15;
@@ -49,23 +48,23 @@ param initial_larvae = 20;
 param initial_nurses = 10;
 param initial_forager = 10;
 
-param temperature = 29;
+param temperature = 13;
 param foodAvailabilityRate = 1; /* Ranges between 0 and 1 */
 
 /* -------- Generic Constants -------- */
 const ENERGY = 4;               /* Energy (or hungry) level of an ant: 0 = no hunger (full of energy), 4 = really hungry (no energy) */
 const FOOD_STORAGE = 20;        /* Food storage: 0 = no food, 10 = storage full of food */
-const IDEAL_TEMPERATURE = 29;   /* The ideal temperature for the ant is between 23 and 35 °C; we can consider 29°C and the tollerance +-10°C */
-const DELTA_TEMPERATURE = 10;   /* The delta of the temperature (tollerance of the ant +- 10°C) */
+const IDEAL_TEMPERATURE = 29;   /* The ideal temperature for the ant is between 23 and 35 °C; we can consider 29°C and the tolerance +-10°C */
+const DELTA_TEMPERATURE = 10;   /* The delta of the temperature (tolerance of the ant +- 10°C) */
 
 /* -------- Helper constants --------- */
 const initial_ants = initial_nurses + initial_forager + initial_larvae;
-const delta_ants = initial_ants * 0.25; /* 25% tollerance */
+const delta_ants = initial_ants * 0.25; /* 25% tolerance */
 
 /* -------- Agents -------- */
 species H of [0, FOOD_STORAGE];                 /* Home (nest)  : H[i] specify the amount of food in the nest */
 species Q of [0, ENERGY]; 	                    /* Queen        : Q[i] queen with hungry level i */
-species L of [0, ENERGY]; 		                  /* Larvae       : L[i] hunger of the larve */
+species L of [0, ENERGY]; 		                  /* Larvae       : L[i] hunger of the larva */
 species N of [0, ENERGY]; 		                  /* Nurse        : N[i] hunger of the nurse ant */
 species F of [0, ENERGY]; 		                  /* Forager      : F[i] hunger of the forager ant */
 species DL; 			                              /* Death larva */
@@ -88,7 +87,7 @@ const foragerWorkRate       = 0.75; /* Ranges between 0.5 and 1 -> (0.5, 1] */
 const changeOfWorkRate      = 0.5;
 
 /* 
- * The probability that the queen dies is pretty low, beacuse, it can dies only in 2 ways: 
+ * The probability that the queen dies is pretty low, because, it can dies only in 2 ways: 
  * - by human's work;
  * - other ants kill it;
  * Since, in this model, the human influence is not take into account, the queen will die only if the workers ant kill it; 
@@ -156,18 +155,18 @@ label starve_l_q = { Q[i for i in [ENERGY/2,ENERGY]], L[i for i in [ENERGY/2,ENE
  * - the more satiated the queen, the more likely she is to lay eggs (1.0 - i / ENERGY);
  * - the temperature;
  * - the number of current larvae (1 / (#larvae + 1));
- * - it is higly influenced by the food storaged in the nest, indeed the more food there is in the nest (food storage), the more likely the queen is to lay eggs ((f / FOOD_STORAGE)^2);
+ * - it is highly influenced by the food stored in the nest, indeed the more food there is in the nest (food storage), the more likely the queen is to lay eggs ((f / FOOD_STORAGE)^2);
  * - the size of the colony;
  * - food availability;
  *
- * The queen will lay a number of eggs that is constant (eggs) and consume a lot of energy.
+ * The queen will lay a number of eggs that are constant (eggs) and consume a lot of energy.
  */
 rule queen_lays_eggs for i in [0, ENERGY/2] and f in [FOOD_STORAGE/2, FOOD_STORAGE] {
   Q[i]|H[f] -[ (1.0 - i / ENERGY) * ((f / FOOD_STORAGE) ^ 2) * (queenFertilityRate - temperatureInfluence / 5) * (1 / (#larvae + 1)) * ((#ants * (foodAvailabilityRate ^ 0.5)) / antBound) ]-> Q[i+2]|H[f]|L[0]<eggs>
 }
 
 /* ------- Consume energy rules --------- */
-/* The energy consumed (Metabolism of the ant) depens on the Mass of the ant (that is abstracted with the Multipliers) and the Temperature: 
+/* The energy consumed (Metabolism of the ant) depends on the Mass of the ant (that is abstracted with the Multipliers) and the Temperature: 
  * - Farter is the temperature from the ideal temperature, faster will be the metabolism (temperature influence);
  * - The heavier the ant, the faster the metabolism (multiplier).
  */
@@ -198,10 +197,10 @@ rule forager_hungry_eats for i in [ENERGY/2, ENERGY] and f in [1, FOOD_STORAGE] 
 
 /* ------------- Work rules ------------- */
 /* The work of the ants are mainly influenced by the Temperature:
- * - The farter the temperature is from the ideal temperature, slower the Nurse will be and the slower it will be for feed the queen and larvae;
- * - The farter the temperature is from the ideal temperature, slower the Forager will be and the slower it will be for food to be harvested.
+ * - The farther the temperature is from the ideal temperature, slower the Nurse will be and the slower it will be for feed the queen and larvae;
+ * - The farther the temperature is from the ideal temperature, slower the Forager will be and the slower it will be for food to be harvested.
  *
- * Moreover, the Foragers are also influenced by the availability of the food: more food there is, greater it will be for food to be harvested.
+ * Moreover, the Foragers are also influenced by the availability of the food: the more food there is, the greater it will be for food to be harvested.
  */
 rule nurse_feed_queen for i in [0, ENERGY-1] and j in [2, ENERGY] and f in [2, FOOD_STORAGE] {
   N[i]|Q[j]|H[f] -[ nurseFeedQueenRate * (((#nurses) * 2 + 1) / (#ants + 1)) ]-> N[i+1]|Q[j-2]|H[f-2]
@@ -222,11 +221,8 @@ rule forager_collects_food for i in [0, ENERGY-1] and f in [0, FOOD_STORAGE-3] {
  * - it is more likely the larva dies if not well feeded or if the temperature is not adequate;
  * - the worker death rate is pretty low.
  */
-/*
- * rule queen_dies => https://drdeathpestcontrol.com/what-happens-when-you-kill-a-queen-ant/#:~:text=The%20answer%20is%20obvious%3A%20the,rare%20situation%20of%20multiple%20queens. 
- */
 rule queen_dies {
-  /* The power (^10) is used to delay the queen death when executing the model more time (when replica > 1), in order to obtain consistent result. */
+  /* The power (^10) is used to delay the queen's death when executing the model more time (when replica > 1), in order to obtain consistent results. */
   Q[ENERGY-1] -[ queenDeathRate * (1 // #ants) ^ 10 ]-> DL
 }
 rule larva_dies for i in [ENERGY / 4 * 2, ENERGY] {
@@ -240,8 +236,8 @@ rule forager_dies for i in [ENERGY / 4 * 3, ENERGY] {
 }
 
 /* ------- Larvae transformation rules -------- */
-/* When a larva is grow enough, it will turn into: Nurse or Forager; the probability is the same for both, and it is 50%.
- * The grow is accelerated by the number of the larvae: the more larvae there are in the nest, faster they will become adults.
+/* When a larva has grown enough, it will turn into: Nurse or Forager; the probability is the same for both, and it is 50%.
+ * The growth is accelerated by the number of the larvae: the more larvae there are in the nest, the faster they will become adults.
  */
 rule larva_becomes_nurse for i in [0, ENERGY] {
   L[i] -[ transformationRate * larvaGrowRate * #larvae * %larvae ]-> N[i]
@@ -253,7 +249,7 @@ rule larva_becomes_forager for i in [0, ENERGY] {
 /* ------------- Change of work rules -------------- */
 /* During the life, an ant (Forager or Nurse) that is not dying ([0, ENERGY / 4 * 3]) can change the job:
  * - A Nurse can become a Forager if the amount of food stored in the nest is scarce, the starve ants is low and the percentage of Nurses increase;
- * - Viceversa, a Forager can become a Nurse if the amount of food stored in the nest is plentiful, the starve ants is high and the percentage of Foragers increase.
+ * - Viceversa, a Forager can become a Nurse if the amount of food stored in the nest is plentiful, the starve ants are high and the percentage of Foragers increase.
  */
 rule nurse_becomes_forager for i in [0, ENERGY / 4 * 3] and f in [0, FOOD_STORAGE] {
   N[i]|H[f] -[ changeOfWorkRate * #nurses * (1 - (f / (FOOD_STORAGE - 1) + #starve_l_q / (#larvae + 1)) / 2) * (#nurses // #workers) ]-> F[i]|H[f]

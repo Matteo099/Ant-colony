@@ -18,5 +18,3 @@ The last 6 simulations are giong to specify the following situations:
 
 The output are in the folder with name: initial_larvae-initial_nurses-initial_forager-temperature-foodAvailabilityRate.
 Example: 20-10-10-29-1 means 20 larvae, 10 nurses, 10 forager, 29 °C, 1.0 foodAvailabilityRate.
-
-Expectation: the large nest tends to survive, while the small nest does not; moreover the death of the colony is speed up by a lower temperature or scarcity of food. 
